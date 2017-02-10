@@ -30,6 +30,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private Camera m_Camera;
         private bool m_Jump;
+		private bool m_Action;
         private float m_YRotation;
         private Vector2 m_Input;
         private Vector3 m_MoveDir = Vector3.zero;
@@ -41,6 +42,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private float m_NextStep;
         private bool m_Jumping;
         private AudioSource m_AudioSource;
+		private bool interactableItem = false;
+		private float rayLength = 2f;
 
         // Use this for initialization
         private void Start()
@@ -53,6 +56,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
             m_StepCycle = 0f;
             m_NextStep = m_StepCycle/2f;
             m_Jumping = false;
+			m_Action = false;
             m_AudioSource = GetComponent<AudioSource>();
 			m_MouseLook.Init(transform , m_Camera.transform);
         }
@@ -68,6 +72,11 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 m_Jump = CrossPlatformInputManager.GetButtonDown("Jump");
             }
 
+			if (!m_Action) 
+			{
+				m_Action = CrossPlatformInputManager.GetButtonDown ("Fire1");
+			}
+
             if (!m_PreviouslyGrounded && m_CharacterController.isGrounded)
             {
                 StartCoroutine(m_JumpBob.DoBobCycle());
@@ -81,6 +90,29 @@ namespace UnityStandardAssets.Characters.FirstPerson
             }
 
             m_PreviouslyGrounded = m_CharacterController.isGrounded;
+
+			RaycastHit hit;
+			Ray landingRay = new Ray (Camera.main.transform.position, Camera.main.transform.forward);
+
+			if (Physics.Raycast (landingRay, out hit, rayLength)) 
+			{
+				if (hit.collider.tag == "interactable") 
+				{
+					interactableItem = true;
+				}
+
+			}
+
+			if (m_Action) 
+			{
+				m_Action = false;
+				if (interactableItem) 
+				{
+					Debug.Log ("test");
+				}
+			}
+
+			interactableItem = false;
         }
 
 
@@ -120,6 +152,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
                     m_Jump = false;
                     m_Jumping = true;
                 }
+
             }
             else
             {
